@@ -1,30 +1,17 @@
-import { Button } from "@/components/ui/button";
 import { ArrowRight, MessageSquare, Zap, Shield, Heart, Sparkles } from "lucide-react";
-import Link from "next/link";
-import { auth } from "@/lib/auth";
 import { SiteHeader } from "@/components/site-header";
 
-
-export default async function Home() {
-  const session = await auth();
-
+export default function Home() {
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-b from-blue-50 to-indigo-50">
-      <SiteHeader user={session?.user} variant="home" />
+      <SiteHeader />
 
       <main className="flex-1">
         <section className="relative overflow-hidden min-h-screen flex items-center">
           <div className="container flex max-w-[64rem] flex-col items-center gap-4 text-center pt-14 pb-24 md:pb-32">
-            <div className="inline-block rounded-full bg-blue-100 px-4 py-1.5 text-sm font-medium text-blue-600">
-              <span className="inline-block animate-bounce mr-2">✨</span>
-              <Link href="https://github.com/beilunyang/moepush" target="_blank" rel="noreferrer">
-                MoePush 现已开源
-              </Link>
-              <span className="inline-block animate-bounce ml-2">✨</span>
-            </div>
             <h1 className="font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl">
               <span className="bg-gradient-to-r from-blue-500 to-indigo-500 text-transparent bg-clip-text">
-                可爱又强大的
+                Shiro自用的
               </span>
               <br />
               消息推送服务
@@ -32,13 +19,6 @@ export default async function Home() {
             <p className="max-w-[42rem] leading-normal text-gray-600 sm:text-xl sm:leading-8">
               支持多种消息推送方式，让您的通知变得更加简单~
             </p>
-            <div className="space-x-4">
-              <Link href="/moe">
-                <Button size="lg" className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:opacity-90 gap-2 transition-all duration-300">
-                  立即开始 <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
             
             {/* 添加可爱的装饰图案 */}
             <div className="absolute top-1/2 -translate-y-1/2 left-0 w-64 h-64 bg-gradient-to-r from-blue-300 to-indigo-300 rounded-full filter blur-3xl opacity-20 animate-blob" />

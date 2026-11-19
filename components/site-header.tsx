@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { UserNav } from "@/components/user-nav";
-import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { User } from "next-auth";
 import { cn } from "@/lib/utils";
@@ -20,12 +19,14 @@ export function SiteHeader({ user, variant = "home", nav }: SiteHeaderProps) {
       <div className="container flex items-center justify-between h-14">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center space-x-2 transition-colors hover:opacity-80">
-            <Image src="/moe_logo.png" alt="MoePush" width={36} height={36} />
+            {variant === "dashboard" && (
+              <Image src="/moe_logo.png" alt="Arona" width={32} height={36} />
+            )}
             <span className={cn(
               "font-bold bg-gradient-to-r from-blue-500 to-indigo-500 text-transparent bg-clip-text",
               variant === "dashboard" && "hidden sm:inline-block"
             )}>
-              MoePush
+              Arona
             </span>
           </Link>
           {nav}
@@ -43,22 +44,9 @@ export function SiteHeader({ user, variant = "home", nav }: SiteHeaderProps) {
             </Link>
           )}
           
-          {user ? (
-            <UserNav user={user} />
-          ) : (
-            variant === "home" && (
-              <div className="flex gap-4">
-                <Link href="/login">
-                  <Button variant="ghost">登录</Button>
-                </Link>
-                <Link href="/register">
-                  <Button>注册</Button>
-                </Link>
-              </div>
-            )
-          )}
+          {variant === "dashboard" && user && <UserNav user={user} />}
         </div>
       </div>
     </header>
   );
-} 
+}
