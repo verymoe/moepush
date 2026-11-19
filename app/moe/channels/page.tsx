@@ -1,25 +1,14 @@
+import { redirect } from "next/navigation"
+import { listRecords } from "@/lib/store"
 import { auth } from "@/lib/auth"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChannelTable } from "@/components/channel-table"
-import { getDb } from "@/lib/db"
-import { channels } from "@/lib/db/schema/channels"
-import { eq } from "drizzle-orm"
-import type { Channel } from "@/lib/channels"
-
-export const runtime = "edge"
-
-async function getChannels(userId: string) {
-  const db = await getDb()
-  return db.query.channels.findMany({
-    where: eq(channels.userId, userId),
-    orderBy: (channels, { desc }) => [desc(channels.createdAt)],
-  })
-}
 
 export default async function ChannelsPage() {
   const session = await auth()
+  if (session?.user?.id !== "admin") redirect("/login?callbackUrl=/moe/channels")
 
-  const channelList = await getChannels(session!.user!.id!)
+  const channelList = await listRecords("channels")
 
   return (
     <div className="flex flex-col gap-8">
@@ -40,11 +29,11 @@ export default async function ChannelsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ChannelTable 
-            channels={channelList as Channel[]} 
+          <ChannelTable
+            channels={channelList}
           />
         </CardContent>
       </Card>
     </div>
   )
-} 
+}

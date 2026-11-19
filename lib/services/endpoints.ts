@@ -1,5 +1,6 @@
-import { Endpoint, NewEndpoint } from "@/lib/db/schema/endpoints"
+import { Endpoint, NewEndpoint } from "@/lib/models/endpoints"
 import { generateExampleBody } from "../generator"
+import type { Status } from "@/lib/models/status"
 
 const API_URL = "/api/endpoints"
 
@@ -41,9 +42,11 @@ export async function deleteEndpoint(id: string) {
   }
 }
 
-export async function toggleEndpointStatus(id: string) {
+export async function toggleEndpointStatus(id: string, status: Status) {
   const res = await fetch(`${API_URL}/${id}/toggle`, {
-    method: "POST"
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
   })
 
   if (!res.ok) {
@@ -76,4 +79,4 @@ export async function getEndpoints() {
     throw new Error(error.error || '获取接口失败')
   }
   return response.json()
-}   
+}

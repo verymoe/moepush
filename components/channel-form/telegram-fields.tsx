@@ -12,7 +12,7 @@ import {
   FormDescription,
 } from "@/components/ui/form"
 import { UseFormReturn } from "react-hook-form"
-import type { ChannelFormData } from "@/lib/db/schema/channels"
+import type { ChannelFormData } from "@/lib/models/channels"
 import { useState } from "react"
 import { useToast } from "@/components/ui/use-toast"
 

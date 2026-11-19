@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Icons } from "@/components/icons";
 import { useToast } from "@/components/ui/use-toast";
 import { signIn } from "next-auth/react";
-import { GitHubButton } from "./github-button";
 
 export function LoginForm(props: React.HTMLAttributes<HTMLDivElement>) {
   const { toast } = useToast();
@@ -36,8 +35,10 @@ export function LoginForm(props: React.HTMLAttributes<HTMLDivElement>) {
         throw new Error("用户名或密码错误");
       }
 
-      const callbackUrl = searchParams.get("callbackUrl") || "/moe/endpoints";
-      router.push(callbackUrl);
+      const callbackUrl = searchParams.get("callbackUrl");
+      const destination = callbackUrl === "/moe/channels"
+        ? callbackUrl : "/moe/endpoints";
+      router.push(destination);
       router.refresh();
     } catch (error) {
       toast({
@@ -86,17 +87,6 @@ export function LoginForm(props: React.HTMLAttributes<HTMLDivElement>) {
           </Button>
         </div>
       </form>
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">
-            或者
-          </span>
-        </div>
-      </div>
-      <GitHubButton text="GitHub 登录" />
     </div>
   );
-} 
+}

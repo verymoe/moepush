@@ -1,5 +1,4 @@
 import { BaseChannel } from "./base"
-import { Channel as DBInferChannel } from "@/lib/db/schema/channels"
 import { DingTalkChannel } from "./dingtalk"
 import { WecomChannel } from "./wecom"
 import { WecomAppChannel } from "./wecom-app"
@@ -8,6 +7,7 @@ import { FeishuChannel } from "./feishu"
 import { DiscordChannel } from "./discord"
 import { BarkChannel } from "./bark"
 import { WebhookChannel } from "./webhook"
+import { QQBotChannel } from "./qq-bot"
 
 // 渠道类型常量
 export const CHANNEL_TYPES = {
@@ -19,6 +19,7 @@ export const CHANNEL_TYPES = {
   DISCORD: "discord",
   BARK: "bark",
   WEBHOOK: "webhook",
+  QQ_BOT: "qq_bot",
 } as const
 
 export type ChannelType = typeof CHANNEL_TYPES[keyof typeof CHANNEL_TYPES]
@@ -33,6 +34,7 @@ const channels: Record<ChannelType, BaseChannel> = {
   [CHANNEL_TYPES.DISCORD]: new DiscordChannel(),
   [CHANNEL_TYPES.BARK]: new BarkChannel(),
   [CHANNEL_TYPES.WEBHOOK]: new WebhookChannel(),
+  [CHANNEL_TYPES.QQ_BOT]: new QQBotChannel(),
 }
 
 // 获取所有渠道标签
@@ -69,4 +71,4 @@ export async function sendChannelMessage(
 }
 
 // 导出渠道接口
-export type Channel = DBInferChannel & { type: ChannelType }
+export type { Channel } from "@/lib/models/channels"

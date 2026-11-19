@@ -57,8 +57,7 @@ export class WecomAppChannel extends BaseChannel {
     if (!corpId || !agentId || !secret) {
       throw new Error("缺少必要的配置信息")
     }
-    
-    console.log('sendWecomAppMessage message:', message)
+
 
     const tokenResponse = await fetch(
       `https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=${corpId}&corpsecret=${secret}`

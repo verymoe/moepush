@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Endpoint } from "@/lib/db/schema/endpoints"
+import { Endpoint } from "@/lib/models/endpoints"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { generateExampleBody } from "@/lib/generator"
 

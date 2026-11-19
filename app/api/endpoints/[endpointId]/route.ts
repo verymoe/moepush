@@ -1,81 +1,27 @@
-import { auth } from "@/lib/auth"
-import { getDb } from "@/lib/db"
-import { endpoints, NewEndpoint } from "@/lib/db/schema/endpoints"
-import { and, eq } from "drizzle-orm"
 import { NextResponse } from "next/server"
-import { z } from "zod"
+import { adminRoute } from "@/lib/admin-route"
+import { insertEndpointSchema } from "@/lib/models/endpoints"
+import { getRecord, removeRecord, saveRecord } from "@/lib/store"
 
-export const runtime = "edge"
+type Context = { params: Promise<{ endpointId: string }> }
 
-export async function PATCH(
-  req: Request,
-  { params }: { params: Promise<{ endpointId: string }> }
-) {
-  try {
-    const db = await getDb()
-    const session = await auth()
-    if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 })
-    }
+export const PATCH = adminRoute(async (request, { params }: Context) => {
+  const { endpointId } = await params
+  const endpoint = await getRecord("endpoints", endpointId)
+  if (!endpoint) return NextResponse.json({ error: "接口不存在" }, { status: 404 })
 
-    const json = await req.json()
-    const { endpointId } = await params
-
-    const endpoint = await db.query.endpoints.findFirst({
-      where: and(
-        eq(endpoints.id, endpointId),
-        eq(endpoints.userId, session.user.id!)
-      ),
-    })
-
-    if (!endpoint) {
-      return new NextResponse("Not found", { status: 404 })
-    }
-
-    const updated = await db.update(endpoints)
-      .set(json as NewEndpoint)
-      .where(eq(endpoints.id, endpointId))
-      .returning()
-
-    return NextResponse.json(updated[0])
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return new NextResponse(error.message, { status: 400 })
-    }
-    console.error("[ENDPOINT_PATCH]", error)
-    return new NextResponse("Internal Error", { status: 500 })
+  const fields = insertEndpointSchema.partial().parse(await request.json())
+  if (fields.channelId && !await getRecord("channels", fields.channelId)) {
+    return NextResponse.json({ error: "渠道不存在" }, { status: 400 })
   }
-}
+  return NextResponse.json(await saveRecord("endpoints", { ...endpoint, ...fields }))
+})
 
-export async function DELETE(
-  req: Request,
-  { params }: { params: Promise<{ endpointId: string }> }
-) {
-  try {
-    const db = await getDb()
-    const session = await auth()
-    if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 })
-    }
-
-    const { endpointId } = await params
-
-    const endpoint = await db.query.endpoints.findFirst({
-      where: and(
-        eq(endpoints.id, endpointId),
-        eq(endpoints.userId, session.user.id!)
-      ),
-    })
-
-    if (!endpoint) {
-      return new NextResponse("Not found", { status: 404 })
-    }
-
-    await db.delete(endpoints).where(eq(endpoints.id, endpointId))
-
-    return new NextResponse(null, { status: 204 })
-  } catch (error) {
-    console.error("[ENDPOINT_DELETE]", error)
-    return new NextResponse("Internal Error", { status: 500 })
+export const DELETE = adminRoute(async (_request, { params }: Context) => {
+  const { endpointId } = await params
+  if (!await getRecord("endpoints", endpointId)) {
+    return NextResponse.json({ error: "接口不存在" }, { status: 404 })
   }
-} 
+  await removeRecord("endpoints", endpointId)
+  return new Response(null, { status: 204 })
+})

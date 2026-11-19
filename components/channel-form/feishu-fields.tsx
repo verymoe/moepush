@@ -1,7 +1,7 @@
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { UseFormReturn } from "react-hook-form"
-import type { ChannelFormData } from "@/lib/db/schema/channels"
+import type { ChannelFormData } from "@/lib/models/channels"
 
 interface FeishuFieldsProps {
   form: UseFormReturn<ChannelFormData>

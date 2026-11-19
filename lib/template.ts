@@ -55,8 +55,6 @@ export function safeInterpolate(
     data: Record<string, any>,
     fallback = ''
 ): string {
-    console.log('safeInterpolate template:', template)
-    
     // 先处理函数调用
     let result = template.replace(FUNCTION_CALL_REGEX, (_, fnName, argsStr) => {
         try {
@@ -104,11 +102,7 @@ export function safeInterpolate(
 
             // 处理字符串中的特殊字符, 避免在JSON.parse时出错
             if (typeof value === 'string') {
-                return value
-                    .replace(/\n/g, '\\n')     // 处理换行符
-                    .replace(/\r/g, '\\r')     // 处理回车符
-                    .replace(/\t/g, '\\t')     // 处理制表符
-                    .replace(/"/g, '\\"')      // 处理双引号
+                return JSON.stringify(value).slice(1, -1)
             }
 
             return value === undefined ? fallback : String(value)
@@ -118,7 +112,6 @@ export function safeInterpolate(
         }
     })
 
-    console.log('safeInterpolate result:', result)
     return result
 }
 

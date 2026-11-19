@@ -30,12 +30,12 @@ import { Plus, Loader2 } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { insertEndpointSchema } from "@/lib/db/schema/endpoints"
-import { Endpoint, NewEndpoint } from "@/lib/db/schema/endpoints"
+import { insertEndpointSchema } from "@/lib/models/endpoints"
+import { Endpoint, NewEndpoint } from "@/lib/models/endpoints"
 import { useToast } from "@/components/ui/use-toast"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { Channel, ChannelType } from "@/lib/channels"
-import { CHANNEL_TEMPLATES } from "@/lib/channels"
+import { CHANNEL_TEMPLATES, CHANNEL_TYPES } from "@/lib/channels"
 import { TemplateFields } from "@/components/template-fields"
 import { createEndpoint, updateEndpoint } from "@/lib/services/endpoints"
 
@@ -55,7 +55,8 @@ const getInitialChannelType = (channels: Channel[], endpoint?: Endpoint) => {
   }
 }
 
-const getInitialTemplateType = (endpoint?: Endpoint) => {
+const getInitialTemplateType = (channelType?: ChannelType, endpoint?: Endpoint) => {
+  if (channelType === CHANNEL_TYPES.QQ_BOT) return "text"
   if (endpoint) {
     const rule = JSON.parse(endpoint.rule || "{}")
     return rule.msgtype || rule.parse_mode
@@ -75,7 +76,7 @@ export function EndpointDialog({
     getInitialChannelType(channels, endpoint)
   )
   const [selectedTemplateType, setSelectedTemplateType] = useState<string | undefined>(
-    getInitialTemplateType(endpoint)
+    getInitialTemplateType(selectedChannelType, endpoint)
   )
   const { toast } = useToast()
 
@@ -173,6 +174,7 @@ export function EndpointDialog({
                           field.onChange(value)
                           const channel = channels.find(c => c.id === value)
                           setSelectedChannelType(channel?.type)
+                          setSelectedTemplateType(getInitialTemplateType(channel?.type))
                         }}
                         value={field.value}
                       >
@@ -275,4 +277,4 @@ export function EndpointDialog({
       </DialogContent>
     </Dialog>
   )
-} 
+}

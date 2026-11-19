@@ -215,8 +215,7 @@ export class BarkChannel extends BaseChannel {
     if (!webhook) {
       throw new Error("缺少 Bark 服务器地址")
     }
-    
-    console.log('sendBarkMessage message:', message)
+
 
     // 准备POST请求的数据
     const postData: Record<string, any> = {
@@ -255,7 +254,6 @@ export class BarkChannel extends BaseChannel {
         body: JSON.stringify(postData)
       });
 
-      console.log('sendBarkMessage response status:', response.status);
       
       if (!response.ok) {
         const text = await response.text();

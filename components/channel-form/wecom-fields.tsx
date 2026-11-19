@@ -9,7 +9,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { UseFormReturn } from "react-hook-form"
-import type { ChannelFormData } from "@/lib/db/schema/channels"
+import type { ChannelFormData } from "@/lib/models/channels"
 
 interface WecomFieldsProps {
   form: UseFormReturn<ChannelFormData>

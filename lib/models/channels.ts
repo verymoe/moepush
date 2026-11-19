@@ -1,38 +1,25 @@
-import { sql } from "drizzle-orm"
-import { text, sqliteTable, index } from "drizzle-orm/sqlite-core"
-import { createInsertSchema, createSelectSchema } from "drizzle-zod"
 import { z } from "zod"
 import { CHANNEL_TYPES } from "@/lib/channels"
+import { statusSchema, type Status } from "./status"
 
-export const channels = sqliteTable("channels", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  type: text("type", { enum: Object.values(CHANNEL_TYPES) as [string, ...string[]] }).notNull(),
-  webhook: text("webhook"),
-  secret: text("secret"),
-  corpId: text("corp_id"),
-  agentId: text("agent_id"),
-  botToken: text("bot_token"),
-  chatId: text("chat_id"),
-  status: text("status", { enum: ["active", "inactive"] }).notNull().default("active"),
-  userId: text("user_id").notNull(),
-  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-}, (table) => ({
-  userIdIdx: index("channels_user_id_idx").on(table.userId),
-}))
+const qqTargetSchema = z.enum(["group", "user"])
 
-export const insertChannelSchema = createInsertSchema(channels).extend({
+export const channelFields = z.object({
   name: z.string().min(1, "名称不能为空").max(50, "名称不能超过50个字符"),
   type: z.nativeEnum(CHANNEL_TYPES),
   webhook: z.string().optional(),
   secret: z.string().optional(),
   corpId: z.string().optional(),
   agentId: z.string().optional(),
-  userId: z.string().optional(),
-  id: z.string().optional(),
   botToken: z.string().optional(),
   chatId: z.string().optional(),
-}).refine((data) => {
+  qqAppId: z.string().trim().max(64).optional(),
+  qqTargetType: qqTargetSchema.optional(),
+  qqOpenId: z.string().trim().max(256).optional(),
+  status: statusSchema.optional(),
+})
+
+export const insertChannelSchema = channelFields.refine((data) => {
   if (data.type === CHANNEL_TYPES.WECOM_APP) {
     return !!data.corpId
   }
@@ -57,7 +44,8 @@ export const insertChannelSchema = createInsertSchema(channels).extend({
   message: "企业微信应用必须提供应用Secret",
   path: ["secret"],
 }).refine((data) => {
-  if (![CHANNEL_TYPES.WECOM_APP, CHANNEL_TYPES.TELEGRAM, CHANNEL_TYPES.FEISHU, CHANNEL_TYPES.BARK, CHANNEL_TYPES.WEBHOOK].includes(data.type as any)) {
+  const webhookTypes = new Set<string>([CHANNEL_TYPES.DINGTALK, CHANNEL_TYPES.WECOM, CHANNEL_TYPES.DISCORD])
+  if (webhookTypes.has(data.type)) {
     if (!data.webhook) return false
     try {
       new URL(data.webhook)
@@ -128,9 +116,32 @@ export const insertChannelSchema = createInsertSchema(channels).extend({
 }, {
   message: "Telegram 机器人必须提供 Chat ID",
   path: ["chatId"],
+}).superRefine((data, ctx) => {
+  if (data.type !== CHANNEL_TYPES.QQ_BOT) return
+
+  if (!data.qqAppId) ctx.addIssue({ code: "custom", path: ["qqAppId"], message: "请输入机器人 AppID" })
+  if (!data.secret?.trim()) ctx.addIssue({ code: "custom", path: ["secret"], message: "请输入机器人 ClientSecret" })
+  if (!data.qqTargetType) ctx.addIssue({ code: "custom", path: ["qqTargetType"], message: "请选择接收对象类型" })
+  if (!data.qqOpenId || /\s|^\.{1,2}$/.test(data.qqOpenId)) {
+    ctx.addIssue({ code: "custom", path: ["qqOpenId"], message: "请输入接收对象的 OpenID" })
+  }
 })
 
-export const selectChannelSchema = createSelectSchema(channels)
+export type ChannelFormData = z.infer<typeof insertChannelSchema>
 
-export type Channel = typeof channels.$inferSelect
-export type ChannelFormData = z.infer<typeof insertChannelSchema> 
+export interface Channel {
+  id: string
+  name: string
+  type: ChannelFormData["type"]
+  status: Status
+  createdAt: string
+  webhook: string | null
+  secret: string | null
+  corpId: string | null
+  agentId: string | null
+  botToken: string | null
+  chatId: string | null
+  qqAppId?: string
+  qqTargetType?: z.infer<typeof qqTargetSchema>
+  qqOpenId?: string
+}

@@ -46,4 +46,4 @@ export default async function MoeLayout({
       </main>
     </div>
   );
-} 
+}

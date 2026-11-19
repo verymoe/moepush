@@ -1,17 +1,18 @@
 import { EndpointGroupWithEndpoints } from "@/types/endpoint-group"
 import { generateExampleBody } from "@/lib/utils"
+import type { Endpoint } from "@/lib/models/endpoints"
+import type { Status } from "@/lib/models/status"
 
 const API_URL = '/api/endpoint-groups'
 
 interface EndpointGroupResponse {
   id: string
   name: string
-  userId: string
   status: "active" | "inactive"
   createdAt: string
   updatedAt: string
   endpointIds: string[]
-  endpoints: any[]
+  endpoints: Endpoint[]
 }
 
 interface ToggleEndpointGroupResponse extends EndpointGroupResponse {
@@ -73,9 +74,11 @@ export async function deleteEndpointGroup(id: string): Promise<{ success: boolea
   return response.json() as Promise<{ success: boolean }>
 }
 
-export async function toggleEndpointGroupStatus(id: string): Promise<EndpointGroupWithEndpoints> {
+export async function toggleEndpointGroupStatus(id: string, status: Status): Promise<EndpointGroupWithEndpoints> {
   const response = await fetch(`${API_URL}/${id}/toggle`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status }),
   })
 
   if (!response.ok) {
@@ -112,4 +115,4 @@ export async function testEndpointGroup(group: EndpointGroupWithEndpoints): Prom
   }
 
   return response.json()
-} 
+}

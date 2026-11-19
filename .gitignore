@@ -44,7 +44,16 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# wrangler files
+# local database and deployment credentials
+/.moepush.db*
+/.moepush-store/
+/.pnpm-store/
+
+# legacy local Cloudflare files
 .wrangler
 .dev.vars
 wrangler.json
+
+# Tencent Cloud EdgeOne
+.edgeone/*
+.tef_dist/*

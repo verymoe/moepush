@@ -134,8 +134,7 @@ export class DingTalkChannel extends BaseChannel {
         url = urlObj.toString()
       }
 
-      console.log('Sending DingTalk message to:', url)
-      console.log('Message:', message)
+
 
       const response = await fetch(url, {
         method: 'POST',

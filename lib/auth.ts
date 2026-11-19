@@ -1,93 +1,42 @@
-import NextAuth from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
-import GithubProvider from "next-auth/providers/github";
-import { DrizzleAdapter } from "@auth/drizzle-adapter";
-import { getDb } from "@/lib/db";
-import { eq } from "drizzle-orm";
-import { users, accounts } from "@/lib/db/schema";
-import { authSchema } from "./validation";
-import { comparePassword } from "./utils";
-import { generateAvatarUrl } from "./avatar";
+import { scrypt, timingSafeEqual } from "node:crypto"
+import NextAuth from "next-auth"
+import Credentials from "next-auth/providers/credentials"
+import { generateAvatarUrl } from "./avatar"
 
-export const {
-    handlers: { GET, POST },
-    auth,
-    signIn,
-    signOut
-} = NextAuth(() => ({
-    secret: process.env.AUTH_SECRET!,
-    adapter: DrizzleAdapter(getDb(), {
-        usersTable: users,
-            accountsTable: accounts,
-        }),
-        session: {
-            strategy: "jwt",
-        },
-        providers: [
-            GithubProvider({
-                clientId: process.env.AUTH_GITHUB_ID!,
-                clientSecret: process.env.AUTH_GITHUB_SECRET!,
-            }),
-            CredentialsProvider({
-                name: "credentials",
-                credentials: {
-                    username: { label: "用户名", type: "text", placeholder: "请输入用户名" },
-                    password: { label: "密码", type: "password", placeholder: "请输入密码" },
-                },
-                async authorize(credentials) {
-                    if (!credentials) {
-                        throw new Error("请输入用户名和密码")
-                    }
+export const { handlers: { GET, POST }, auth } = NextAuth({
+  pages: { signIn: "/login" },
+  // EdgeOne terminates HTTPS before the Next.js server receives the request.
+  useSecureCookies: process.env.AUTH_SECURE_COOKIES === "true" || undefined,
+  session: { strategy: "jwt", maxAge: 12 * 60 * 60 },
+  providers: [
+    Credentials({
+      credentials: {
+        username: { label: "管理员用户名", type: "text" },
+        password: { label: "密码", type: "password" },
+      },
+      async authorize(credentials) {
+        const username = process.env.ADMIN_USERNAME
+        const match = /^([0-9a-f]{32}):([0-9a-f]{64})$/.exec(process.env.ADMIN_PASSWORD_HASH || "")
+        const password = credentials.password
+        if (!username || !match || typeof password !== "string" || Buffer.byteLength(password) > 512) {
+          return null
+        }
 
-                    const { username, password } = credentials
-
-                    try {
-                        authSchema.parse({ username, password })
-                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                    } catch (error) {
-                        throw new Error("输入格式不正确")
-                    }
-
-                    const db = getDb()
-
-                    const user = await db.query.users.findFirst({
-                        where: eq(users.username, username as string),
-                    })
-
-                    if (!user) {
-                        throw new Error("用户名或密码错误")
-                    }
-
-                    const isValid = await comparePassword(password as string, user.password as string)
-                    if (!isValid) {
-                        throw new Error("用户名或密码错误")
-                    }
-
-                    return {
-                        ...user,
-                        password: undefined,
-                    }
-                },
-            })
-        ],
-        callbacks: {
-            async session({ token, session }) {
-                if (token && session.user) {
-                    session.user.id = token.id as string
-                    session.user.name = token.name as string
-                    session.user.username = token.username as string
-                    session.user.image = token.image as string
-                }
-                return session;
-            },
-            async jwt({ token, user }) {
-                if (user) {
-                    token.id = user.id
-                    token.name = user.name || user.username
-                    token.username = user.username
-                    token.image = user.image || generateAvatarUrl(token.name as string)
-                }
-                return token
-            },
-    }
-}));
+        const salt = Buffer.from(match[1], "hex")
+        const key = await new Promise<Buffer>((resolve, reject) => {
+          scrypt(password, salt, 32, (error, result) => error ? reject(error) : resolve(result))
+        })
+        if (!timingSafeEqual(key, Buffer.from(match[2], "hex")) || credentials.username !== username) {
+          return null
+        }
+        return { id: "admin", name: username, image: generateAvatarUrl(username) }
+      },
+    }),
+  ],
+  callbacks: {
+    session({ session, token }) {
+      session.user.id = token.sub || ""
+      return session
+    },
+  },
+})

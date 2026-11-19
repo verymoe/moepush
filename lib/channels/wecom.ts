@@ -67,8 +67,7 @@ export class WecomChannel extends BaseChannel {
     if (!webhook) {
       throw new Error("缺少 Webhook 地址")
     }
-    
-    console.log('sendWecomMessage message:', message)
+
 
     const response = await fetch(webhook, {
       method: 'POST',

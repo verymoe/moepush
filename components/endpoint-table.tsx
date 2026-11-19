@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/popover"
 import { useState } from "react"
 import { EndpointDialog } from "@/components/endpoint-dialog"
-import { Endpoint } from "@/lib/db/schema/endpoints"
+import { Endpoint } from "@/lib/models/endpoints"
 import { useToast } from "@/components/ui/use-toast"
 import {
   AlertDialog,
@@ -105,10 +105,10 @@ export function EndpointTable({
     }
   }
 
-  const handleToggleStatus = async (id: string) => {
+  const handleToggleStatus = async (id: string, status: Endpoint["status"]) => {
     try {
       setIsLoading(id)
-      await toggleEndpointStatus(id)
+      await toggleEndpointStatus(id, status === "active" ? "inactive" : "active")
       
       onEndpointsUpdate()
       
@@ -293,7 +293,7 @@ export function EndpointTable({
                           />
                           <DropdownMenuItem
                             disabled={isLoading === endpoint.id}
-                            onClick={() => handleToggleStatus(endpoint.id)}
+                            onClick={() => handleToggleStatus(endpoint.id, endpoint.status)}
                           >
                             <Power className="h-4 w-4 mr-2" />
                             {endpoint.status === 'active' ? '禁用' : '启用'}
@@ -357,4 +357,4 @@ export function EndpointTable({
       />
     </div>
   )
-} 
+}

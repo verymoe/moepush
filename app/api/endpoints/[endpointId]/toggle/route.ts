@@ -1,45 +1,14 @@
-import { auth } from "@/lib/auth"
-import { getDb } from "@/lib/db"
-import { endpoints } from "@/lib/db/schema/endpoints"
-import { and, eq } from "drizzle-orm"
 import { NextResponse } from "next/server"
+import { adminRoute } from "@/lib/admin-route"
+import { statusSchema } from "@/lib/models/status"
+import { getRecord, saveRecord } from "@/lib/store"
+import { z } from "zod"
 
-export const runtime = "edge"
+export const POST = adminRoute(async (request, { params }: { params: Promise<{ endpointId: string }> }) => {
+  const { endpointId } = await params
+  const endpoint = await getRecord("endpoints", endpointId)
+  if (!endpoint) return NextResponse.json({ error: "接口不存在" }, { status: 404 })
 
-export async function POST(
-  req: Request,
-  { params }: { params: Promise<{ endpointId: string }> }
-) {
-  try {
-    const db = await getDb()
-    const session = await auth()
-    if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 })
-    }
-
-    const { endpointId } = await params
-
-    const endpoint = await db.query.endpoints.findFirst({
-      where: and(
-        eq(endpoints.id, endpointId),
-        eq(endpoints.userId, session.user.id!)
-      ),
-    })
-
-    if (!endpoint) {
-      return new NextResponse("Not found", { status: 404 })
-    }
-
-    const updated = await db.update(endpoints)
-      .set({ 
-        status: endpoint.status === 'active' ? 'inactive' : 'active' 
-      })
-      .where(eq(endpoints.id, endpointId))
-      .returning()
-
-    return NextResponse.json(updated[0])
-  } catch (error) {
-    console.error("[ENDPOINT_TOGGLE]", error)
-    return new NextResponse("Internal Error", { status: 500 })
-  }
-} 
+  const { status } = z.object({ status: statusSchema }).parse(await request.json())
+  return NextResponse.json(await saveRecord("endpoints", { ...endpoint, status }))
+})

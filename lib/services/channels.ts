@@ -1,4 +1,4 @@
-import { Channel, ChannelFormData } from "@/lib/db/schema/channels"
+import { Channel, ChannelFormData } from "@/lib/models/channels"
 
 const API_URL = "/api/channels"
 

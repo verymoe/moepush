@@ -28,7 +28,16 @@ export interface SendMessageOptions {
   agentId?: string
   botToken?: string
   chatId?: string
+  qqAppId?: string
+  qqTargetType?: "group" | "user"
+  qqOpenId?: string
   [key: string]: any
+}
+
+export class ChannelDeliveryError extends Error {
+  constructor(message: string, readonly status = 502) {
+    super(message)
+  }
 }
 
 export abstract class BaseChannel {
@@ -47,4 +56,4 @@ export abstract class BaseChannel {
   getType(): string {
     return this.config.type
   }
-} 
+}

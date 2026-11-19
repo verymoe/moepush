@@ -27,7 +27,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 import { createEndpointGroup } from "@/lib/services/endpoint-groups"
-import { Endpoint } from "@/lib/db/schema/endpoints"
+import { Endpoint } from "@/lib/models/endpoints"
 
 const createEndpointGroupSchema = z.object({
   name: z.string().min(1, "名称不能为空"),

@@ -29,8 +29,7 @@ export class DiscordChannel extends BaseChannel {
     if (!webhook) {
       throw new Error("缺少 Discord Webhook 地址")
     }
-    
-    console.log('sendDiscordMessage message:', message)
+
 
     const response = await fetch(webhook, {
       method: 'POST',

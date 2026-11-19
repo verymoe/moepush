@@ -1,4 +1,5 @@
 import { dirname } from "path";
+import { createRequire } from "node:module";
 import { fileURLToPath } from "url";
 import { FlatCompat } from "@eslint/eslintrc";
 
@@ -7,9 +8,11 @@ const __dirname = dirname(__filename);
 
 const compat = new FlatCompat({
   baseDirectory: __dirname,
+  resolvePluginsRelativeTo: dirname(createRequire(import.meta.url).resolve("eslint-config-next")),
 });
 
 const eslintConfig = [
+  { ignores: [".next/**", ".edgeone/**", ".pnpm-store/**", "next-env.d.ts"] },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     rules: {

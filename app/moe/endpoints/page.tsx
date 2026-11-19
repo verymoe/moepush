@@ -1,35 +1,15 @@
+import { redirect } from "next/navigation"
+import { listRecords } from "@/lib/store"
 import { auth } from "@/lib/auth"
-import { getDb } from "@/lib/db"
-import { endpoints } from "@/lib/db/schema/endpoints"
-import { channels } from "@/lib/db/schema/channels"
-import { eq } from "drizzle-orm"
-import { Channel } from "@/lib/channels"
 import { EndpointsTabs } from "@/components/endpoints-tabs"
-
-export const runtime = "edge"
-
-async function getEndpoints(userId: string) {
-  const db = await getDb()
-  return db.query.endpoints.findMany({
-    where: eq(endpoints.userId, userId),
-    orderBy: (endpoints, { desc }) => [desc(endpoints.createdAt)],
-  })
-}
-
-async function getChannels(userId: string) {
-  const db = await getDb()
-  return db.query.channels.findMany({
-    where: eq(channels.userId, userId),
-    orderBy: (channels, { desc }) => [desc(channels.createdAt)],
-  })
-}
 
 export default async function EndpointsPage() {
   const session = await auth()
+  if (session?.user?.id !== "admin") redirect("/login?callbackUrl=/moe/endpoints")
 
   const [endpointList, channelList] = await Promise.all([
-    getEndpoints(session!.user!.id!),
-    getChannels(session!.user!.id!),
+    listRecords("endpoints"),
+    listRecords("channels"),
   ])
 
   return (
@@ -43,10 +23,10 @@ export default async function EndpointsPage() {
         </p>
       </div>
 
-      <EndpointsTabs 
+      <EndpointsTabs
         initialEndpoints={endpointList}
-        channels={channelList as Channel[]} 
+        channels={channelList}
       />
     </div>
   )
-} 
+}

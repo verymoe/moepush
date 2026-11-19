@@ -84,10 +84,10 @@ export function EndpointGroupTable({ groups, onGroupsUpdate }: EndpointGroupTabl
     }
   }
   
-  const handleToggleStatus = async (id: string) => {
+  const handleToggleStatus = async (id: string, status: "active" | "inactive") => {
     try {
       setIsLoading(id)
-      await toggleEndpointGroupStatus(id)
+      await toggleEndpointGroupStatus(id, status === "active" ? "inactive" : "active")
       
       onGroupsUpdate()
       toast({
@@ -218,7 +218,7 @@ export function EndpointGroupTable({ groups, onGroupsUpdate }: EndpointGroupTabl
                           测试推送
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          onClick={() => handleToggleStatus(group.id)}
+                          onClick={() => handleToggleStatus(group.id, group.status)}
                           disabled={isLoading === group.id}
                         >
                           <Power className="mr-2 h-4 w-4" />
@@ -276,4 +276,4 @@ export function EndpointGroupTable({ groups, onGroupsUpdate }: EndpointGroupTabl
       />
     </div>
   )
-} 
+}

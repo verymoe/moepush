@@ -120,7 +120,6 @@ export class FeishuChannel extends BaseChannel {
       message.sign = await generateFeishuSign(secret, timestamp)
     }
 
-    console.log('sendFeishuMessage message:', message)
 
     const response = await fetch(webhook, {
       method: 'POST',
