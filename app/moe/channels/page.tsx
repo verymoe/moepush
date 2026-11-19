@@ -3,6 +3,8 @@ import { listRecords } from "@/lib/store"
 import { auth } from "@/lib/auth"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChannelTable } from "@/components/channel-table"
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
 export default async function ChannelsPage() {
   const session = await auth()
@@ -19,6 +21,9 @@ export default async function ChannelsPage() {
         <p className="text-muted-foreground mt-2">
           管理您的推送渠道
         </p>
+        <Button asChild variant="outline" size="sm" className="mt-3">
+          <Link href="/moe/qq-openid">临时获取 QQ OpenID</Link>
+        </Button>
       </div>
 
       <Card className="bg-white/50 border-blue-100">

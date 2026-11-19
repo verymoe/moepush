@@ -36,7 +36,7 @@ export function LoginForm(props: React.HTMLAttributes<HTMLDivElement>) {
       }
 
       const callbackUrl = searchParams.get("callbackUrl");
-      const destination = callbackUrl === "/moe/channels"
+      const destination = callbackUrl === "/moe/channels" || callbackUrl === "/moe/qq-openid"
         ? callbackUrl : "/moe/endpoints";
       router.push(destination);
       router.refresh();
